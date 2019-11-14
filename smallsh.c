@@ -20,7 +20,8 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 	/* initialization for later routines */
 	ptr = inpbuf;
 	tok = tokbuf;
-
+	int check;
+	char  outbuf[256];
 	int fd;
 	time_t tt;
 	char timebuf[12];
@@ -33,8 +34,20 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 			printf("%s ", p); //command> 가 출력
 			count = 0;
 			while(1) {
-			if ((c = getchar()) == EOF) return(EOF); //-1이나 ctRl+c  
+			if (((c = getchar()) == EOF)) return(EOF); //-1이나 ctRl+c  
+			//check = getch(c);
+			//switch(check){
+			//	case 127:
+			//		continue;
+			//	case 'A':
+			//		printf("up\n");
+			//		break;
+			//	case 'B':
+			//		printf("down\n");
+			//		break;
+			//}
 			if (count < MAXBUF) inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
+			
 			if (c == '\n' && count < MAXBUF) {
 			inpbuf[count] = '\0';
 			// printf(" inpbuf[%d] : %s \n", count, inpbuf);
@@ -43,6 +56,7 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 				sprintf(timebuf, "#%d\n",(int)tt); 
 				write(fd, timebuf, 12); 
 				close(fd);
+
 			return(count);
 			}
 			/*  if line too long, restart */
