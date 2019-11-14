@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
+#include <termios.h>
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF],	*ptr, *tok;
 
@@ -20,11 +21,12 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 	/* initialization for later routines */
 	ptr = inpbuf;
 	tok = tokbuf;
-
+	int check;
+	char  outbuf[256];
 	int fd;
 	time_t tt;
 	char timebuf[12];
-	if((fd = open("/data3/2019/3c2/s151956/project/unix_project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
+	if((fd = open("/data3/2019/3c2/s151937/project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
 			perror("open");
 			exit(1);
 			}
@@ -33,8 +35,26 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 			printf("%s ", p); //command> 가 출력
 			count = 0;
 			while(1) {
-			if ((c = getchar()) == EOF) return(EOF); //-1이나 ctRl+c  
+				  c=getch();
+				  if(c=='['){
+					  switch(check=getch()){
+						  case EOF:
+							  return EOF;
+							  break;
+						  case 65:
+							  printf("UP");
+							  break;
+						  case 66:
+							  printf("DOWN");
+							  break;
+						  default :
+							  check=0;
+							  break;
+					  }
+				 }
+
 			if (count < MAXBUF) inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
+			
 			if (c == '\n' && count < MAXBUF) {
 			inpbuf[count] = '\0';
 			// printf(" inpbuf[%d] : %s \n", count, inpbuf);
@@ -43,6 +63,7 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 				sprintf(timebuf, "%d\n",(int)tt); 
 				write(fd, timebuf, 11); 
 				close(fd);
+
 			return(count);
 			}
 			/*  if line too long, restart */
@@ -149,18 +170,19 @@ runcommand(cline, where)
 {
 	int pid, exitstat, ret;
 	int status;
+
+	if(shellcmd(where, cline)) return 0;
+	//if(!strcmp(*cline, "cd")) cmd_cd(where, cline);
+	//else if(!strcmp(*cline, "exit")) cmd_exit(where, cline);
 	if ((pid = fork()) < 0) {
 		perror("smallsh");
 		return(-1);
 	}
-	if(!(strcmp(*cline, "cd"))) cmd_cd(where, cline);
-	else if(!(strcmp(*cline, "exit"))) cmd_exit(where, cline);
-	else if(!(strcmp(*cline, "history"))) cmd_history(where, cline);
-	else {
 		if (pid == 0) {	/* child */
 		execvp(*cline, cline);
 		perror(*cline);
-		exit(127);
+		exit(0);
+		
 	}
 
 	/* code for parent */
@@ -175,7 +197,6 @@ runcommand(cline, where)
 		return (-1);
 	else 
 		return (status);
-	}
 }
 
 main()
