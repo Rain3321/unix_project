@@ -12,9 +12,9 @@ void cmd_exit(int argc, char *argv[]){
 	exit(0);
 
 }
-int getch()  
-{  
-	int ch;
+char getch()  
+{	
+	char ch;
 	struct termios buf;  
 	struct termios save;  
 	tcgetattr(0, &save);  
@@ -24,24 +24,10 @@ int getch()
 	buf.c_cc[VTIME] = 0;  
 	tcsetattr(0, TCSAFLUSH, &buf);
 	ch = getchar();
-
 	tcsetattr(0, TCSAFLUSH, &save);  
-		switch(ch){
-			case 127:
-				break;
-			case 'A':
-				printf(" up");
-				break;
-			case 'B':
-				printf("down");
-				break;
-			default:
-				putchar(ch);
-				break;
-		}
-
 	return ch;
-
 }  
+
+
 
 

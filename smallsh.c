@@ -35,17 +35,6 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 			count = 0;
 			while(1) {
 			if (((c = getchar()) == EOF)) return(EOF); //-1이나 ctRl+c  
-			//check = getch(c);
-			//switch(check){
-			//	case 127:
-			//		continue;
-			//	case 'A':
-			//		printf("up\n");
-			//		break;
-			//	case 'B':
-			//		printf("down\n");
-			//		break;
-			//}
 			if (count < MAXBUF) inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
 			
 			if (c == '\n' && count < MAXBUF) {
@@ -163,17 +152,20 @@ runcommand(cline, where)
 {
 	int pid, exitstat, ret;
 	int status;
+
+	if(shellcmd(where, cline)) return 0;
+	//if(!strcmp(*cline, "cd")) cmd_cd(where, cline);
+	//else if(!strcmp(*cline, "exit")) cmd_exit(where, cline);
 	if ((pid = fork()) < 0) {
 		perror("smallsh");
 		return(-1);
 	}
-	if(!(strcmp(*cline, "cd"))) cmd_cd(where, cline);
-	else if(!(strcmp(*cline, "exit"))) cmd_exit(where, cline);
-	else {
+	//else {
 		if (pid == 0) {	/* child */
 		execvp(*cline, cline);
 		perror(*cline);
-		exit(127);
+		exit(0);
+		
 	}
 
 	/* code for parent */
@@ -188,7 +180,7 @@ runcommand(cline, where)
 		return (-1);
 	else 
 		return (status);
-	}
+	//}
 }
 
 main()
