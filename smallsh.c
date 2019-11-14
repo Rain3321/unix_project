@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
+#include <termios.h>
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF],	*ptr, *tok;
 
@@ -34,7 +35,24 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 			printf("%s ", p); //command> 가 출력
 			count = 0;
 			while(1) {
-			if (((c = getchar()) == EOF)) return(EOF); //-1이나 ctRl+c  
+				  c=getch();
+				  if(c=='['){
+					  switch(check=getch()){
+						  case EOF:
+							  return EOF;
+							  break;
+						  case 65:
+							  printf("UP");
+							  break;
+						  case 66:
+							  printf("DOWN");
+							  break;
+						  default :
+							  check=0;
+							  break;
+					  }
+				 }
+
 			if (count < MAXBUF) inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
 			
 			if (c == '\n' && count < MAXBUF) {

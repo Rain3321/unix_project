@@ -12,9 +12,9 @@ void cmd_exit(int argc, char *argv[]){
 	exit(0);
 
 }
-char getch()  
-{	
-	char ch;
+int getch()  
+{ 
+	int c;
 	struct termios buf;  
 	struct termios save;  
 	tcgetattr(0, &save);  
@@ -22,12 +22,9 @@ char getch()
 	buf.c_lflag &= ~(ICANON|ECHO);  
 	buf.c_cc[VMIN] = 1;  
 	buf.c_cc[VTIME] = 0;  
-	tcsetattr(0, TCSAFLUSH, &buf);
-	ch = getchar();
-	tcsetattr(0, TCSAFLUSH, &save);  
-	return ch;
+	tcsetattr(0, TCSANOW, &buf);
+	c=getchar();
+	if(c!='[') putchar(c);
+	tcsetattr(0, TCSANOW, &save);  
+	return c;
 }  
-
-
-
-
