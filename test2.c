@@ -4,7 +4,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<ctype.h>
-int main(int argc, char *argv[]){
+void history_function(int argc, char *argv[]){
 	FILE *rfp;
 	int i=1;
 	int j,history_num;
@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 	};
 	time_t tt;
 	extern char* optarg;
-	if(argc==1){
+	
 	if((rfp = fopen(".history","r"))==NULL){
 		perror("fopen:.history");
 		exit(1);
@@ -29,7 +29,8 @@ int main(int argc, char *argv[]){
 		i++;
 	}
 	fclose(rfp);
-	}
+}
+int main(int argc, char *argv[]){
 	printf("%d",argc);
 	printf("%s",argv[1]);
 	return 0;

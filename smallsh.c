@@ -24,7 +24,7 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 	int fd;
 	time_t tt;
 	char timebuf[12];
-	if((fd = open("/data3/2019/3c2/s151937/project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
+	if((fd = open("/data3/2019/3c2/s151956/project/unix_project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
 			perror("open");
 			exit(1);
 			}
@@ -40,8 +40,8 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 			// printf(" inpbuf[%d] : %s \n", count, inpbuf);
 				if(write(fd, inpbuf, count) != count) perror("Write");
 				time(&tt);
-				sprintf(timebuf, "#%d\n",(int)tt); 
-				write(fd, timebuf, 12); 
+				sprintf(timebuf, "%d\n",(int)tt); 
+				write(fd, timebuf, 11); 
 				close(fd);
 			return(count);
 			}
@@ -155,6 +155,7 @@ runcommand(cline, where)
 	}
 	if(!(strcmp(*cline, "cd"))) cmd_cd(where, cline);
 	else if(!(strcmp(*cline, "exit"))) cmd_exit(where, cline);
+	else if(!(strcmp(*cline, "history"))) cmd_history(where, cline);
 	else {
 		if (pid == 0) {	/* child */
 		execvp(*cline, cline);
