@@ -13,8 +13,8 @@ void cmd_exit(int argc, char *argv[]){
 
 }
 int getch()  
-{  
-	int ch;
+{ 
+	int c;
 	struct termios buf;  
 	struct termios save;  
 	tcgetattr(0, &save);  
@@ -22,26 +22,18 @@ int getch()
 	buf.c_lflag &= ~(ICANON|ECHO);  
 	buf.c_cc[VMIN] = 1;  
 	buf.c_cc[VTIME] = 0;  
-	tcsetattr(0, TCSAFLUSH, &buf);
-	ch = getchar();
-
-	tcsetattr(0, TCSAFLUSH, &save);  
-		switch(ch){
-			case 127:
-				break;
-			case 'A':
-				printf(" up");
-				break;
-			case 'B':
-				printf("down");
-				break;
-			default:
-				putchar(ch);
-				break;
-		}
-
-	return ch;
-
+	tcsetattr(0, TCSANOW, &buf);
+	c=getchar();
+	if(c!='[') putchar(c);
+	tcsetattr(0, TCSANOW, &save);  
+	return c;
 }  
+void H_UP(int hnum){
+	char line[1024];
+	FILE *f;
+	int i;
+	f= fopen(".history.c","r");
+	for(i=0;i<
 
+}
 
