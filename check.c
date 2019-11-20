@@ -6,7 +6,11 @@ int shellcmd(int args, char *argv[]){
 		cmd_cd(args, argv);
 	}
 	else if(!strcmp(argv[0], "exit")){
-		cmd_exit();
+		cmd_exit(args, argv);
+
+	}
+	else if(!strcmp(argv[0], "history")){
+		cmd_history(args, argv);
 	}
 	else
 		return 0;
