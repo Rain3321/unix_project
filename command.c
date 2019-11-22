@@ -1,6 +1,8 @@
 #include<unistd.h>
 #include<stdio.h>
 #include<termios.h>
+#include<stdlib.h>
+#include<fcntl.h>
 void cmd_cd(int argc,char *argv[]){
 	char wd[BUFSIZ];
 	
@@ -12,7 +14,7 @@ void cmd_exit(int argc, char *argv[]){
 	exit(0);
 
 }
-char getch()  
+char get_ch()  
 {	
 	char ch;
 	struct termios buf;  
@@ -25,6 +27,8 @@ char getch()
 	tcsetattr(0, TCSAFLUSH, &buf);
 	ch = getchar();
 	if(ch != '[') putchar(ch);
+	 
+
 	tcsetattr(0, TCSAFLUSH, &save);  
 	return ch;
 }  

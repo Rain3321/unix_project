@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
+#include<string.h>
+#include<ctype.h>
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF],	*ptr, *tok;
 
@@ -23,43 +25,97 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 	int check;
 	char  outbuf[256];
 	int fd;
+	int i, cursor;
+	FILE *rfp;
+	char line;
+	char out[256];
 	time_t tt;
-	char timebuf[12];
+	long leng = 1;
+	char timebuf[11];
 	if((fd = open("/data3/2019/3c2/s151937/project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
 			perror("open");
 			exit(1);
 			}
+	if((rfp = fopen("/data3/2019/3c2/s151937/project/.history", "r")) ==NULL){
+		perror("fopen");
+		exit(1);
+	}
 
 			/* display prompt */
 			printf("%s ", p); //command> 가 출력
 			count = 0;
+			//fseek(rfp, 0, SEEK_END);
 			while(1) {
-			c = getch();
+			c = get_ch();
 			if(c == '['){
-				switch(check = getch()){
+				switch(check = get_ch()) {
 					case EOF:
 						return EOF;
 						break;
 					case 65:
-						printf("UP");
+						//printf("UP");
+						while(leng++ < 1024){
+							fseek(rfp, -(leng), SEEK_END);
+							line = fgetc(rfp);
+							if(line == EOF)
+								break;
+							if(line == '\n'){
+								fgets(out, leng, rfp);
+								out[strlen(out)-1] = '\0';
+								if(isdigit(out[1]))
+									continue;
+								break;
+							}
+						}
+						printf("\033[a\33[2K\r");
+
+						printf("%s %s",p, out);
+						strcpy(inpbuf, out);
+						count = strlen(out);
 						break;
 					case 66:
-						printf("DOWN");
+						//printf("DOWN");
+						while(leng++ <1024){
+							//fseek(rfp, (leng), SEEK_CUR);
+							line = fgetc(rfp);
+							if(line == EOF){
+								out[0] = '\0';
+								break;
+							}
+							if(line == '\n'){
+								fgets(out, leng, rfp);
+								out[strlen(out)-1] = '\0';
+								if(isdigit(out[0]))
+									continue;
+								break;
+							}
+						}
+						printf("\033[a\33[2K\r");
+						printf("Command> %s", out);
+						strcpy(inpbuf, out);
+						count = strlen(out);
 						break;
 					default:
 						check = 0;
 						break;
 				}
+				
 			}
-			if (count < MAXBUF) inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
+			else if(c == ''){
+				count--;	
+				inpbuf[count] = '\0';	
+			}
+			
+		   else if (count < MAXBUF) 
+				inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
 			
 			if (c == '\n' && count < MAXBUF) {
 			inpbuf[count] = '\0';
-			// printf(" inpbuf[%d] : %s \n", count, inpbuf);
+			//printf(" inpbuf[%d] : %s \n", count, inpbuf);
 				if(write(fd, inpbuf, count) != count) perror("Write");
 				time(&tt);
-				sprintf(timebuf, "#%d\n",(int)tt); 
-				write(fd, timebuf, 12); 
+				sprintf(timebuf, "%d\n",(int)tt); 
+				write(fd, timebuf, 11); 
 				close(fd);
 
 			return(count);
