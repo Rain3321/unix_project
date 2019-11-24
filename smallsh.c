@@ -132,34 +132,34 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 gettok(char **outptr)
 {
 		int type;
-			/* outptr 문자열을 tok 로 지정한다 */
-			*outptr = tok;
+		/* outptr 문자열을 tok 로 지정한다 */
+		*outptr = tok;
 
-				/* 토큰을 포함하고 있는 버퍼로부터 여백을 제거한다 */
-				while( *ptr == ' ' || *ptr == '\t') ptr++;
+		/* 토큰을 포함하고 있는 버퍼로부터 여백을 제거한다 */
+		while( *ptr == ' ' || *ptr == '\t') ptr++;
 
-					/* 토큰 포인터를 버퍼 내의 첫 토큰으로 지정한다 */
-					*tok++ = *ptr;
+		/* 토큰 포인터를 버퍼 내의 첫 토큰으로 지정한다 */
+		*tok++ = *ptr;
 
-						/* 버퍼내의 토큰에 따라 유형 변수를 지정한다 */
-						switch(*ptr++) {
-									case '\n' : type = EOL;
-																	/* printf(" type == EOL getok()\n"); */
-																	break;
-														case '&'  :	
-																	type = AMPERSAND;
-																						/* printf(" type == AMPERSAND getok()\n"); */
-																						break;
-																								case ';'  :	type = SEMICOLON;
-																																/* printf(" type == SEMICOLON getok()\n"); */
-																																break;
-																													default   :	type = ARG;
-																																					/* printf(" type == ARG getok()\n"); */
-																																					while(inarg(*ptr)) 
-																																												*tok++ = *ptr++;
-																																	}
-							*tok++ = '\0';
-								return type;
+		/* 버퍼내의 토큰에 따라 유형 변수를 지정한다 */
+		switch(*ptr++) {
+			case '\n' : type = EOL;
+						/* printf(" type == EOL getok()\n"); */
+						break;
+			case '&'  :	
+						type = AMPERSAND;
+						/* printf(" type == AMPERSAND getok()\n"); */
+						break;
+			case ';'  :	type = SEMICOLON;
+						/* printf(" type == SEMICOLON getok()\n"); */
+						break;
+			default   :	type = ARG;
+						/* printf(" type == ARG getok()\n"); */
+						while(inarg(*ptr))
+							*tok++ = *ptr++;
+		}
+		*tok++ = '\0';
+		return type;
 }
 
 /* are we in an ordinary argument , 일반적인 인자일 때 */
@@ -167,19 +167,17 @@ inarg(c)
 		char c;
 {
 		char *wrk;
-
-			for(wrk = special; *wrk != '\0'; wrk++) {
-						if (c == *wrk) {
-										printf(" special arg : %c inarg()\n", *wrk);
-													return(0);
-															}
-							}
-
-				return(1);
+		for(wrk = special; *wrk != '\0'; wrk++) {
+			if (c == *wrk) {
+				printf(" special arg : %c inarg()\n", *wrk);
+				return(0);
+			}
+		}
+		return(1);
 }
 
 /*		입력 줄을 아래와 같이 처리한다 :				*/
-/*									*/
+/*									                    */
 /*	gettok을 이용하여 명령문을 구무분석(parse) 하고		*/
 /*	그 과정에서 인수의 목록을 작성한다. 개행문자나		*/
 /*	세미콜론(;)을 만나면 명령을 수행하기 위해			*/
@@ -187,30 +185,27 @@ inarg(c)
 procline() 
 {
 		char *arg[MAXARG+1];	/* runcommand를 위한 포인터 배열 */
-			int toktype;			/* 명령내의 토근의 유형 */
-				int narg;			/* 지금까지의 인수 수 */
-					int type;			/* FOREGROUND or BACKGROUND */
-							
-						/* 토큰 유형에 따라 행동을 취한다.	*/
-						for (narg = 0;;) {	/* loop FOREVER */
-									switch(toktype = gettok(&arg[narg])) {
-													case ARG	: if (narg < MAXARG) narg++;
-																								  break;
-																			case EOL	: 
-																			case SEMICOLON	: 
-																			case AMPERSAND	: 
-																						  type = (toktype == AMPERSAND) ? BACKGROUND : FOREGROUND;
-																												  if (narg != 0) { //\n이나 ;를 만나면 command 실행
-																																				  arg[narg] = NULL;
-																																											  runcommand(arg, type, narg);
-																																																	  }
-
-																																		  if (toktype == EOL) return;
-																																								  narg = 0;
-																																														  break;
-																																																}
-										}
-
+		int toktype;			/* 명령내의 토근의 유형 */
+		int narg;			    /* 지금까지의 인수 수 */
+		int type;			    /* FOREGROUND or BACKGROUND */	
+						        /* 토큰 유형에 따라 행동을 취한다.	*/
+		for (narg = 0;;) {	/* loop FOREVER */
+			switch(toktype = gettok(&arg[narg])) {
+				case ARG	: if (narg < MAXARG) narg++;
+								  break;
+				case EOL	: 
+				case SEMICOLON	: 
+				case AMPERSAND	:
+							  type = (toktype == AMPERSAND) ? BACKGROUND : FOREGROUND;
+							  if (narg != 0) { //\n이나 ;를 만나면 command 실행
+								  arg[narg] = NULL;
+								  runcommand(arg, type, narg);
+							  }
+							  if (toktype == EOL) return;
+							  narg = 0;
+							  break;
+			}
+		}
 }
 
 /*	 wait를 선택사항으로 하여 명령을 수행한다.		*/
