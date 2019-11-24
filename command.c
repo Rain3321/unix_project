@@ -1,5 +1,9 @@
 #include<unistd.h>
 #include<stdio.h>
+#include<termios.h>
+#include<stdlib.h>
+#include<fcntl.h>
+#include<string.h>
 void cmd_cd(int argc,char *argv[]){
 	char wd[BUFSIZ];
 	
@@ -11,9 +15,10 @@ void cmd_exit(int argc, char *argv[]){
 	exit(0);
 }
 void cmd_history(int argc, char *argv[]){
+	int leng =1;
 	FILE *rfp;
-	int i,j;
-	i=1;
+	int i,line,n;
+	i=0;
 	time_t tt;
 	struct tm *tm;
 	char buf[BUFSIZ],time_arr[BUFSIZ],real_time[BUFSIZ];
@@ -24,14 +29,62 @@ void cmd_history(int argc, char *argv[]){
 		perror("fopen:.history");
 		exit(1);
 	}
-	while(fgets(buf,BUFSIZ,rfp)!=NULL){
-		fgets(time_arr,BUFSIZ,rfp);
-		tt = (time_t)(atoi(time_arr));
-		tm = localtime(&tt);
-		strftime(real_time,BUFSIZ,output,tm);
-		printf("%3d %s %s",i,real_time,buf);
-		i++;
+	while((n=getopt(argc,argv,"c"))!=-1){
+		remove(".history");
+	}
+	if(argc==1){
+		while(fgets(buf,BUFSIZ,rfp)!=NULL){
+			fgets(time_arr,BUFSIZ,rfp);
+			tt = (time_t)(atoi(time_arr));
+			tm = localtime(&tt);
+			strftime(real_time,BUFSIZ,output,tm);
+			printf("%3d %s %s",i+1,real_time,buf);
+			i++;
+		}
+	}
+	else if(argc==2){
+		if(atoi(argv[1])!=0){
+		while(leng++<1024){
+			fseek(rfp,-(leng),SEEK_END);
+			line = fgetc(rfp);
+			if(line == '\n'){
+				fgets(buf, leng,rfp);
+				buf[strlen(buf)-1]='\0';
+				if(atoi(buf)!=0){
+					strcpy(time_arr,buf);
+					tt = (time_t)(atoi(time_arr));
+					tm = localtime(&tt);
+					strftime(real_time,BUFSIZ,output,tm);
+				}
+				else{
+					printf("%d %s %s\n",i+1,real_time,buf);
+					i++;
+				}
+			}
+			if(i==atoi(argv[1]))
+				break;
+		}
+		}	
 	}
 	fclose(rfp);
 	return;
+	
 }
+char get_ch()  
+{	
+	char ch;
+	struct termios buf;  
+	struct termios save;  
+	tcgetattr(0, &save);  
+	buf = save;
+	buf.c_lflag &= ~(ICANON|ECHO);  
+	buf.c_cc[VMIN] = 1;  
+	buf.c_cc[VTIME] = 0;  
+	tcsetattr(0, TCSAFLUSH, &buf);
+	ch = getchar();
+	if(ch != '[') putchar(ch);
+	 
+
+	tcsetattr(0, TCSAFLUSH, &save);  
+	return ch;
+}  

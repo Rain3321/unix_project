@@ -1,10 +1,12 @@
-nclude "smallsh.h"
+#include "smallsh.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
+#include<string.h>
+#include<ctype.h>
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF],	*ptr, *tok;
 
@@ -16,45 +18,115 @@ char *prompt = "Command>";	/* Prompt */
 /*	프로그램 버퍼에 저장한다.					*/
 userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 마지막에 \0 리턴값으로 메인문 반복 지속
 {
-		int c, count;
-			/* initialization for later routines */
-			ptr = inpbuf;
-				tok = tokbuf;
-					int check;
-						char  outbuf[256];
-							int fd;
-								time_t tt;
-									char timebuf[12];
-										if((fd = open("/data3/2019/3c2/s151937/project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
-														perror("open");
-																	exit(1);
-																				}
+	int c, count;
+	/* initialization for later routines */
+	ptr = inpbuf;
+	tok = tokbuf;
+	int check;
+	char  outbuf[256];
+	int fd;
+	int i, cursor;
+	FILE *rfp;
+	char line;
+	char out[256];
+	time_t tt;
+	long leng = 1;
+	char timebuf[11];
+	if((fd = open("/data3/2019/3c2/s151956/project/unix_project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
+			perror("open");
+			exit(1);
+			}
+	if((rfp = fopen("/data3/2019/3c2/s151956/project/unix_project/.history", "r")) ==NULL){
+		perror("fopen");
+		exit(1);
+	}
 
-													/* display prompt */
-													printf("%s ", p); //command> 가 출력
-																count = 0;
-																			while(1) {
-																							if (((c = getchar()) == EOF)) return(EOF); //-1이나 ctRl+c  
-																										if (count < MAXBUF) inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
-																													
-																													if (c == '\n' && count < MAXBUF) {
-																																	inpbuf[count] = '\0';
-																																				// printf(" inpbuf[%d] : %s \n", count, inpbuf);
-																																					if(write(fd, inpbuf, count) != count) perror("Write");
-																																									time(&tt);
-																																													sprintf(timebuf, "#%d\n",(int)tt); 
-																																																	write(fd, timebuf, 12); 
-																																																					close(fd);
+			/* display prompt */
+			printf("%s ", p); //command> 가 출력
+			count = 0;
+			//fseek(rfp, 0, SEEK_END);
+			while(1) {
+			c = get_ch();
+			if(c == '['){
+				switch(check = get_ch()) {
+					case EOF:
+						return EOF;
+						break;
+					case 65:
+						//printf("UP");
+						while(leng++ < 1024){
+							fseek(rfp, -(leng), SEEK_END);
+							line = fgetc(rfp);
+							if(line == EOF)
+								break;
+							if(line == '\n'){
+								fgets(out, leng, rfp);
+								out[strlen(out)-1] = '\0';
+								if(isdigit(out[1]))
+									continue;
+								break;
+							}
+						}
+						printf("\033[a\33[2K\r");
 
-																																																								return(count);
-																																																											}
-																																/*  if line too long, restart */
-																																if (c == '\n') {
-																																					printf(" smallsh : input line too long\n");
-																																									count = 0;
-																																													printf("%s ", p); //다시 command> 출력
-																																																}
-																																			}
+						printf("%s %s",p, out);
+						strcpy(inpbuf, out);
+						count = strlen(out);
+						break;
+					case 66:
+						//printf("DOWN");
+						while(leng++ <1024){
+							//fseek(rfp, (leng), SEEK_CUR);
+							line = fgetc(rfp);
+							if(line == EOF){
+								out[0] = '\0';
+								break;
+							}
+							if(line == '\n'){
+								fgets(out, leng, rfp);
+								out[strlen(out)-1] = '\0';
+								if(isdigit(out[0]))
+									continue;
+								break;
+							}
+						}
+						printf("\033[a\33[2K\r");
+						printf("Command> %s", out);
+						strcpy(inpbuf, out);
+						count = strlen(out);
+						break;
+					default:
+						check = 0;
+						break;
+				}
+				
+			}
+			else if(c == ''){
+				count--;	
+				inpbuf[count] = '\0';	
+			}
+			
+		   else if (count < MAXBUF) 
+				inpbuf[count++] = c;//명령어를 inpbuf에 넣는다
+			
+			if (c == '\n' && count < MAXBUF) {
+			inpbuf[count] = '\0';
+			//printf(" inpbuf[%d] : %s \n", count, inpbuf);
+				if(write(fd, inpbuf, count) != count) perror("Write");
+				time(&tt);
+				sprintf(timebuf, "%d\n",(int)tt); 
+				write(fd, timebuf, 11); 
+				close(fd);
+
+			return(count);
+			}
+			/*  if line too long, restart */
+			if (c == '\n') {
+				printf(" smallsh : input line too long\n");
+				count = 0;
+				printf("%s ", p); //다시 command> 출력
+			}
+			}
 }
 /* get token and place into tokbuf */
 gettok(char **outptr)
@@ -130,7 +202,7 @@ procline()
 																						  type = (toktype == AMPERSAND) ? BACKGROUND : FOREGROUND;
 																												  if (narg != 0) { //\n이나 ;를 만나면 command 실행
 																																				  arg[narg] = NULL;
-																																											  runcommand(arg, type);
+																																											  runcommand(arg, type, narg);
 																																																	  }
 
 																																		  if (toktype == EOL) return;
@@ -146,41 +218,42 @@ procline()
 /*	만일 where가 smallsh.h에서 정의된 값 BACKGROUND로	*/
 /*	지정되어 있으면 waitpid 호출은 생략되고 runcommand는 */
 /*	단순히 프로세스 식별번호만 인쇄하고 복귀한다.		*/
-runcommand(cline, where)
+runcommand(cline, where, narg)
 		char **cline;
 			int where;
+			int narg;
 {
-		int pid, exitstat, ret;
-			int status;
+	int pid, exitstat, ret;
+	int status;
 
-				if(shellcmd(where, cline)) return 0;
-					//if(!strcmp(*cline, "cd")) cmd_cd(where, cline);
-					//else if(!strcmp(*cline, "exit")) cmd_exit(where, cline);
-					if ((pid = fork()) < 0) {
-								perror("smallsh");
-										return(-1);
-											}
-						//else {
-							if (pid == 0) {	/* child */
-										execvp(*cline, cline);
-												perror(*cline);
-														exit(0);
-																
-															}
+	if(shellcmd(narg, cline)) return 0;
+	//if(!strcmp(*cline, "cd")) cmd_cd(where, cline);
+	//else if(!strcmp(*cline, "exit")) cmd_exit(where, cline);
+	if ((pid = fork()) < 0) {
+		perror("smallsh");
+		return(-1);
+	}
+	//else {
+		if (pid == 0) {	/* child */
+		execvp(*cline, cline);
+		perror(*cline);
+		exit(0);
+		
+	}
 
-								/* code for parent */
-								/* if background process, print pid and exit */
-								if (where == BACKGROUND) {
-											printf("[Process id %d]\n",pid);
-													return(0);
-														}
+	/* code for parent */
+	/* if background process, print pid and exit */
+	if (where == BACKGROUND) {
+		printf("[Process id %d]\n",pid);
+		return(0);
+	}
 
-									/* 프로세스 pid가 퇴장할 때까지 기다린다. */
-									if (waitpid(pid, &status, 0) == -1)
-												return (-1);
-										else 
-													return (status);
-											//}
+	/* 프로세스 pid가 퇴장할 때까지 기다린다. */
+	if (waitpid(pid, &status, 0) == -1)
+		return (-1);
+	else 
+		return (status);
+	//}
 }
 
 main()
