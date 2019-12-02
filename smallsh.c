@@ -32,11 +32,11 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 	time_t tt;
 	long leng = 1;
 	char timebuf[11];
-	if((fd = open("/data3/2019/3c2/s151956/project/unix_project/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
+	if((fd = open("/data3/2019/3c2/s151937/teamproject/.history", O_CREAT | O_RDWR | O_APPEND, 0644)) == -1) {
 			perror("open");
 			exit(1);
 			}
-	if((rfp = fopen("/data3/2019/3c2/s151956/project/unix_project/.history", "r")) ==NULL){
+	if((rfp = fopen("/data3/2019/3c2/s151937/teamproject/.history", "r")) ==NULL){
 		perror("fopen");
 		exit(1);
 	}
@@ -46,7 +46,7 @@ userin(char *p) //명령어 입력해서 저장  inpbuf에 저장하는 거임 �
 			count = 0;
 			//fseek(rfp, 0, SEEK_END);
 			while(1) {
-			c = get_ch();
+			if((c = get_ch())== EOF) return EOF;
 			if(c == '['){
 				switch(check = get_ch()) {
 					case EOF:

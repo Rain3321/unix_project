@@ -6,7 +6,10 @@
 #include<string.h>
 void cmd_cd(int argc,char *argv[]){
 	char wd[BUFSIZ];
-	
+	if(argc > 2 || argc == 1) {
+		printf("check your command\n");
+		return;
+	}
 	chdir(argv[1]);
 	return;
 }
@@ -23,7 +26,7 @@ void cmd_history(int argc, char *argv[]){
 	struct tm *tm;
 	char buf[BUFSIZ],time_arr[BUFSIZ],real_time[BUFSIZ];
 	char output[]={
-		"%G-%m-%e_%T"
+		"%G-%m-%d_%T"
 	};
 	if((rfp = fopen(".history","r"))==NULL){
 		perror("fopen:.history");
@@ -72,24 +75,6 @@ void cmd_history(int argc, char *argv[]){
 				break;
 		} // while(leng++<1024)를 닫는중괄호
 		} // if(atoi(argv[1])!=0) 를 닫는 중괄호
-/*		else{
-			printf("문자입력\n");
-			printf("%c\n",n);
-			switch(n){
-				case 'c':
-					remove(".history");
-					break;
-				case 'm':
-					printf("Option : \n");
-					printf("'c' : Delete .history file\n");
-					printf("n(숫자)을 입력하면 최근에 입력했던 명렁어를 n개 보여줍니다.\n");
-					break;
-				default :
-					printf("You can use 'c','m' option\n");
-					break;
-			}
-			
-		}*/
 	}
 	else
 		printf("You can only one option\n");
