@@ -29,9 +29,16 @@ void cmd_history(int argc, char *argv[]){
 		perror("fopen:.history");
 		exit(1);
 	}
-	while((n=getopt(argc,argv,"c"))!=-1){
-		remove(".history");
-	}
+	if((n = getopt(argc,argv,"c"))!=-1){
+		switch(n){
+			case 'c':
+				remove(".history");
+				break;
+			/*default :
+				printf("You can only use 'c' option\n");
+				break;*/
+		}
+		}
 	if(argc==1){
 		while(fgets(buf,BUFSIZ,rfp)!=NULL){
 			fgets(time_arr,BUFSIZ,rfp);
@@ -63,11 +70,31 @@ void cmd_history(int argc, char *argv[]){
 			}
 			if(i==atoi(argv[1]))
 				break;
-		}
-		}	
+		} // while(leng++<1024)를 닫는중괄호
+		} // if(atoi(argv[1])!=0) 를 닫는 중괄호
+/*		else{
+			printf("문자입력\n");
+			printf("%c\n",n);
+			switch(n){
+				case 'c':
+					remove(".history");
+					break;
+				case 'm':
+					printf("Option : \n");
+					printf("'c' : Delete .history file\n");
+					printf("n(숫자)을 입력하면 최근에 입력했던 명렁어를 n개 보여줍니다.\n");
+					break;
+				default :
+					printf("You can use 'c','m' option\n");
+					break;
+			}
+			
+		}*/
 	}
+	else
+		printf("You can only one option\n");
 	fclose(rfp);
-	return;
+	return ;
 	
 }
 char get_ch()  
